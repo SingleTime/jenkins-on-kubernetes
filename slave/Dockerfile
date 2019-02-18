@@ -1,5 +1,5 @@
 FROM anapsix/alpine-java:8u192b12_jdk 
-MAINTAINER Oleg Nenashev <o.v.nenashev@gmail.com>
+MAINTAINER jiangliao jiang.liao080@gmail.com>
 
 #RUN ln /usr/enniu/java/bin/java /usr/bin/java
 ARG VERSION=3.28

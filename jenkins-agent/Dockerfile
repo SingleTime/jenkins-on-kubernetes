@@ -1,6 +1,6 @@
 # enniu_maven
-FROM st-docker.u51-inc.com/cicd/slave:1.0 
-MAINTAINER jiangliao <@u51.com>
+FROM swarm-client-slave:1.0 
+MAINTAINER jiangliao jiang.liao080@gmail.com>
 
 ARG MAVEN_VERSION=3.6.0
 ARG USER_HOME_DIR="/home/jenkins"

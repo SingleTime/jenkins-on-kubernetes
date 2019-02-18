@@ -25,3 +25,4 @@ kubectl create -f jenkins-agent.yaml -n kube-ops
 ```
 
  备注：jenkins-agent:1.0。镜像的构建脚本 jenkins-agent/Dockerfile
+
