@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: jenkins-agent
+spec:
+  serviceName: jenkins-agent
+  replicas: 5
+  selector:
+    matchLabels:
+      app: jenkins-agent
+      failure-domain.beta.kubernetes.io/region: cn-east-2
+      failure-domain.beta.kubernetes.io/zone: cn-east-2c
+  template:
+    metadata:
+      labels:
+        app: jenkins-agent
+        failure-domain.beta.kubernetes.io/region: cn-east-2
+        failure-domain.beta.kubernetes.io/zone: cn-east-2c
+      annotations:
+        pod.alpha.kubernetes.io/initialized: 'true'
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: jenkins-agent
+        image: jenkins-agent:1.0
+        imagePullPolicy: Always
+        env:
+          - name: JENKINS_AGENT_LABEL
+            value: java
+          - name: JENKINS_MASTER_ADDRESS
+            value: http://jenkins.chuck.com:8080
+          - name: JENKINS_TUNNEL_ADDRESS
+            value: jenkins.chuck.com:50000
+          - name: DOCKER_HOST
+            value: tcp://localhost:2375
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                apiVersion: v1
+                fieldPath: metadata.name
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+          - mountPath: /home/jenkins/workspace
+            name: workspace-volume
+          - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+            name: default-token-cs252
+            readOnly: true
+          - mountPath: /home/jenkins/.m2
+            name: maven-settings
+          - mountPath: /home/jenkins/.m2/repository
+            name: maven-sata-cn-east-2
+          - mountPath: /var/www/logs
+            name: service-log
+        tty: true
+      - name: dind
+        image: docker:18.05-dind
+        securityContext:
+          privileged: true
+        args: ["--insecure-registry", "docker.u51-inc.com", "--insecure-registry", "st-docker.u51-inc.com"]
+        volumeMounts:
+          - name: dind-storage
+            mountPath: /var/lib/docker
+          - mountPath: /workspace
+            name: workspace-volume
+      volumes:
+        - configMap:
+            defaultMode: 420
+            name: maven-settings2
+          name: maven-settings
+        - emptyDir: {}
+          name: workspace-volume
+        - name: default-token-cs252
+          secret:
+            defaultMode: 420
+            secretName: default-token-cs252
+        - name: dind-storage
+          emptyDir: {}
+        - name: service-log
+          emptyDir: {}
+  volumeClaimTemplates:
+  - metadata:
+      name: maven-sata-cn-east-2
+      annotations:
+        volume.beta.kubernetes.io/storage-class: sata
+        volume.beta.kubernetes.io/storage-provisioner: flexvolume-huawei.com/fuxivol
+      labels:
+        failure-domain.beta.kubernetes.io/region: cn-east-2
+        failure-domain.beta.kubernetes.io/zone: cn-east-2c
+      enable: true
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 10Gi
+
+  
